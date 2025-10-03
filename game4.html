@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-a-Mole | Galaxy Games</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #0f0f1a;
+            --primary-color: #1a1a2e;
+            --secondary-color: #2a2a4a;
+            --accent-color: #00f5d4;
+            --glow-color: rgba(0, 245, 212, 0.5);
+            --font-color: #e0e0e0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .game-container {
+            background-color: var(--primary-color);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--secondary-color);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 2.5rem; color: white; }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 1.5rem;
+        }
+        .stats-bar span { color: var(--accent-color); font-weight: bold; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .hole {
+            width: 100%;
+            padding-top: 100%; /* Aspect ratio 1:1 */
+            background-color: var(--bg-color);
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid var(--secondary-color);
+        }
+
+        .mole {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translate(-50%, 100%);
+            font-size: 3rem;
+            transition: transform 0.2s ease-out;
+            cursor: crosshair;
+        }
+
+        .hole.up .mole {
+            transform: translate(-50%, 10%);
+        }
+        
+        /* --- Screens & Buttons --- */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(15, 15, 26, 0.9);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            border-radius: 20px;
+        }
+        .overlay h2 { font-size: 3rem; margin-bottom: 10px; color: var(--accent-color); }
+        .overlay p { font-size: 1.5rem; margin-bottom: 30px; }
+        .btn {
+            padding: 12px 30px; font-size: 1.1rem; font-weight: 700;
+            border-radius: 25px; border: none; cursor: pointer;
+            transition: all 0.3s ease; background-color: var(--accent-color);
+            color: black;
+        }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--glow-color); }
+        .hidden { display: none; }
+        a { color: var(--font-color-muted); text-decoration: none; margin-top: 20px; display: inline-block; }
+        a:hover { color: var(--accent-color); }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header">
+            <h1>🔨 Whack-a-Mole</h1>
+            <div class="stats-bar">
+                <div>คะแนน: <span id="score">0</span></div>
+                <div>เวลา: <span id="time-left">30</span></div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="hole"><div class="mole">👾</div></div>
+            <div class="hole"><div class="mole">👾</div></div>
+            <div class="hole"><div class="mole">👾</div></div>
+            <div class="hole"><div class="mole">👾</div></div>
+            <div class="hole"><div class="mole">👾</div></div>
+            <div class="hole"><div class="mole">👾</div></div>
+            <div class="hole"><div class="mole">👾</div></div>
+            <div class="hole"><div class="mole">👾</div></div>
+            <div class="hole"><div class="mole">👾</div></div>
+        </div>
+        
+        <a href="index.html"><i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก</a>
+
+        <div class="overlay" id="start-screen">
+            <h2>เตรียมตัวให้พร้อม!</h2>
+            <p>ทุบเอเลี่ยนให้ได้มากที่สุดใน 30 วินาที</p>
+            <button class="btn" id="start-button">เริ่มเกม</button>
+        </div>
+
+        <div class="overlay hidden" id="game-over-screen">
+            <h2>หมดเวลา!</h2>
+            <p>คะแนนสุดท้ายของคุณ: <span id="final-score">0</span></p>
+            <button class="btn" id="play-again-button">เล่นอีกครั้ง</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const holes = document.querySelectorAll('.hole');
+            const scoreBoard = document.getElementById('score');
+            const timeLeftBoard = document.getElementById('time-left');
+            const startScreen = document.getElementById('start-screen');
+            const gameOverScreen = document.getElementById('game-over-screen');
+            const startButton = document.getElementById('start-button');
+            const playAgainButton = document.getElementById('play-again-button');
+            const finalScoreBoard = document.getElementById('final-score');
+            
+            let lastHole;
+            let timeUp = false;
+            let score = 0;
+            let timeLeft = 30;
+            let moleInterval;
+            let timerInterval;
+            let minTime = 400; // Fastest speed
+            let maxTime = 1000; // Slowest speed
+
+            function randomTime(min, max) {
+                return Math.round(Math.random() * (max - min) + min);
+            }
+
+            function randomHole(holes) {
+                const idx = Math.floor(Math.random() * holes.length);
+                const hole = holes[idx];
+                if (hole === lastHole) {
+                    return randomHole(holes);
+                }
+                lastHole = hole;
+                return hole;
+            }
+
+            function peep() {
+                // Adjust speed based on time left
+                const speed = Math.max(minTime, maxTime * (timeLeft / 30));
+                const hole = randomHole(holes);
+                hole.classList.add('up');
+                setTimeout(() => {
+                    hole.classList.remove('up');
+                    if (!timeUp) peep();
+                }, speed);
+            }
+
+            function startGame() {
+                scoreBoard.textContent = 0;
+                timeLeftBoard.textContent = 30;
+                score = 0;
+                timeLeft = 30;
+                timeUp = false;
+
+                startScreen.classList.add('hidden');
+                gameOverScreen.classList.add('hidden');
+
+                peep();
+                
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timeLeftBoard.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+
+            function endGame() {
+                clearInterval(timerInterval);
+                timeUp = true;
+                finalScoreBoard.textContent = score;
+                gameOverScreen.classList.remove('hidden');
+            }
+
+            function whack(e) {
+                if (!e.isTrusted) return; // Cheater!
+                if (!this.parentElement.classList.contains('up')) return;
+
+                score++;
+                scoreBoard.textContent = score;
+                this.parentElement.classList.remove('up');
+            }
+
+            document.querySelectorAll('.mole').forEach(mole => mole.addEventListener('click', whack));
+            startButton.addEventListener('click', startGame);
+            playAgainButton.addEventListener('click', startGame);
+        });
+    </script>
+</body>
+</html>

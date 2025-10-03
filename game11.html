@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snooker | Galaxy Games</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #0f0f1a;
+            --primary-color: #1a1a2e;
+            --secondary-color: #2a2a4a;
+            --accent-color: #00f5d4;
+            --font-color: #e0e0e0;
+            --table-felt: #004d40;
+            --table-rail: #263238;
+            --font-color-muted: #a0a0b0;
+            --glow-color: rgba(0, 245, 212, 0.5);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: auto;
+        }
+
+        .header { text-align: center; margin-bottom: 10px; width: 100%; }
+        .header h1 {
+            margin: 0;
+            color: var(--accent-color);
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            gap: 15px;
+        }
+
+        .canvas-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        #snooker-canvas {
+            background-color: var(--table-felt);
+            border: 10px solid var(--table-rail);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(0,0,0,0.4);
+            max-width: 100%;
+            height: auto;
+            cursor: crosshair;
+        }
+        
+        /* This class will now be added to game-container */
+        .aim-locked .canvas-container::after {
+            content: "✓ เล็งล็อกแล้ว! ปรับแรง/ไซด์แล้วกด 'แทง'";
+            position: absolute;
+            bottom: -25px; left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            animation: pulse 1.5s infinite;
+            z-index: 10;
+        }
+        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+        
+        .controls-container {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 15px; width: 100%; max-width: 800px;
+        }
+        
+        .side-panel, .instructions {
+            background-color: var(--primary-color);
+            padding: 15px; border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            flex: 1; min-width: 250px;
+        }
+
+        .player-info {
+            padding: 8px; border-radius: 8px;
+            border: 2px solid var(--secondary-color);
+            margin-bottom: 10px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .player-info.active {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+        .player-info h2 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .player-info .score { font-size: 1.5rem; font-weight: bold; }
+
+        .game-status {
+            background-color: var(--bg-color);
+            padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px;
+        }
+        .game-status h3 { margin: 0 0 8px 0; font-size: 0.9rem; color: var(--font-color-muted); }
+        .game-status #turn-info { font-size: 1.1rem; font-weight: bold; }
+        
+        .spin-control-container { text-align: center; margin-bottom: 10px; }
+        #spin-control { 
+            background-color: #fff; border-radius: 50%;
+            cursor: pointer; margin: 0 auto; display: block;
+        }
+        
+        .power-container { margin-bottom: 10px; }
+        #power-slider { width: 100%; margin: 8px 0; cursor: pointer; }
+        .power-display { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.8rem; color: var(--font-color-muted); }
+
+        .controls { text-align: center; margin-top: 10px; }
+        button {
+            background-color: var(--secondary-color);
+            color: var(--font-color); border: none; padding: 10px 15px;
+            border-radius: 5px; cursor: pointer; font-family: 'Kanit', sans-serif;
+            margin: 5px; transition: background-color 0.3s, transform 0.2s;
+            font-size: 0.9rem; font-weight: bold;
+        }
+        button:hover { background-color: var(--accent-color); color: var(--bg-color); }
+        button:active { transform: scale(0.95); }
+        #shoot-btn { background-color: #e74c3c; }
+        #shoot-btn:hover { background-color: #c0392b; }
+        
+        .instructions h3 {
+            color: var(--accent-color); margin-top: 0;
+            border-bottom: 1px solid var(--secondary-color); padding-bottom: 5px;
+        }
+        .instructions .step { display: flex; align-items: flex-start; margin-bottom: 10px; }
+        .instructions .step-number {
+            background-color: var(--accent-color); color: var(--bg-color);
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 10px; flex-shrink: 0; font-weight: bold;
+        }
+        
+        a { color: var(--font-color-muted); text-decoration: none; display: block; text-align: center; margin-top: 15px; font-size: 0.9rem; }
+        a:hover { color: var(--accent-color); }
+
+        @media (min-width: 1024px) {
+            .game-container { flex-direction: row; align-items: flex-start; }
+            .canvas-container { order: 1; flex: 2; }
+            .controls-container { order: 2; flex: 1; max-width: 320px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Galaxy Snooker</h1>
+    </div>
+
+    <div class="game-container">
+        <div class="canvas-container">
+            <canvas id="snooker-canvas"></canvas>
+        </div>
+        
+        <div class="controls-container">
+            <div class="side-panel">
+                <div class="player-info" id="player1-info">
+                    <h2>ผู้เล่น 1</h2>
+                    <p class="score" id="score1">0</p>
+                </div>
+                <div class="player-info" id="player2-info">
+                    <h2>ผู้เล่น 2</h2>
+                    <p class="score" id="score2">0</p>
+                </div>
+                <div class="game-status">
+                    <h3>ตาของคุณ:</h3>
+                    <p id="turn-info">แทงลูกแดง</p>
+                </div>
+                <div class="spin-control-container">
+                    <h3><i class="fa-solid fa-arrows-to-dot"></i> กำหนดจุดกระทบ</h3>
+                    <canvas id="spin-control" width="80" height="80"></canvas>
+                </div>
+                <div class="power-container">
+                    <h3><i class="fa-solid fa-gauge-high"></i> กำลังแทง:</h3>
+                    <input type="range" id="power-slider" min="1" max="150" value="50">
+                    <div class="power-display">
+                        <span>เบา</span>
+                        <span id="power-value">50</span>
+                        <span>แรงมาก</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button id="shoot-btn"><i class="fa-solid fa-play"></i> แทง</button>
+                    <button id="reset-btn"><i class="fa-solid fa-rotate"></i> เริ่มใหม่</button>
+                </div>
+                <a href="index.html"><i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก</a>
+            </div>
+            
+            <div class="instructions">
+                <h3><i class="fa-solid fa-circle-info"></i> วิธีการเล่น</h3>
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div>เลื่อนเมาส์บนโต๊ะเพื่อเล็ง</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div><b>คลิกซ้ายบนโต๊ะ</b> เพื่อล็อก/ปลดล็อกการเล็ง</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>ปรับจุดกระทบและความแรง</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div>กดปุ่ม <b>"แทง"</b> เพื่อตีลูก</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // Simplified, playable 2D Snooker/Pool game physics and logic.
+    class Vector {
+        constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+        add(v) { return new Vector(this.x + v.x, this.y + v.y); }
+        subtract(v) { return new Vector(this.x - v.x, this.y - v.y); }
+        multiply(s) { return new Vector(this.x * s, this.y * s); }
+        magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); }
+        normalize() { const m = this.magnitude(); return m === 0 ? new Vector(0, 0) : new Vector(this.x / m, this.y / m); }
+        dot(v) { return this.x * v.x + this.y * v.y; }
+        distance(v) { return this.subtract(v).magnitude(); }
+    }
+    
+    // Ball Class
+    class Ball {
+        constructor(x, y, radius, color, type = 'red', value = 1) {
+            this.position = new Vector(x, y); this.velocity = new Vector(0, 0);
+            this.radius = radius; this.color = color; this.type = type;
+            this.value = value; this.inPocket = false; this.mass = 1;
+        }
+        draw(ctx) {
+            if (this.inPocket) return;
+            ctx.beginPath();
+            ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color; ctx.fill();
+        }
+        update() {
+            if (this.inPocket) return;
+            this.velocity = this.velocity.multiply(0.985); // Friction
+            this.position = this.position.add(this.velocity);
+            if (this.velocity.magnitude() < 0.05) this.velocity = new Vector(0, 0);
+        }
+    }
+    
+    // Main Game Class
+    class Game {
+        constructor(canvas) {
+            this.canvas = canvas; this.ctx = canvas.getContext('2d');
+            this.balls = []; this.pockets = []; this.cueBall = null;
+            this.currentPlayer = 1; this.playerScores = [0, 0];
+            this.gameState = 'aiming'; this.targetBall = 'red';
+            this.spin = { x: 0, y: 0 }; this.power = 50;
+            this.aimLine = { start: null, end: null }; this.aimLocked = false;
+        }
+
+        init() {
+            this.createPockets(); this.resetBalls(); this.updateUI();
+        }
+
+        createPockets() {
+            const w = this.canvas.width, h = this.canvas.height;
+            const r = 22;
+            this.pockets = [
+                new Vector(r, r), new Vector(w / 2, r - 5), new Vector(w - r, r),
+                new Vector(r, h - r), new Vector(w / 2, h - (r - 5)), new Vector(w - r, h - r)
+            ];
+        }
+
+        resetBalls() {
+            this.balls = []; const r = 10, w = this.canvas.width, h = this.canvas.height;
+            this.cueBall = new Ball(w / 4, h / 2, r, 'white', 'cue');
+            this.balls.push(this.cueBall);
+            
+            const packX = w * 0.7;
+            const packY = h / 2;
+            let row = 0, col = 0;
+            for (let i = 0; i < 15; i++) {
+                const x = packX + row * (r * 1.8);
+                const y = packY - (row * r) + (col * r * 2);
+                this.balls.push(new Ball(x, y, r, '#d63031', 'red', 1));
+                col++;
+                if (col > row) { row++; col = 0; }
+            }
+            this.balls.push(new Ball(w*0.25, h*0.25, r, '#2d3436', 'black', 7));
+            this.gameState = 'aiming'; this.targetBall = 'red';
+            this.aimLocked = false; this.updateAimLockUI();
+        }
+
+        update() {
+            this.balls.forEach(b => b.update());
+            this.checkCollisions();
+            this.checkPockets();
+            if (this.gameState === 'moving' && this.allBallsStopped()) {
+                this.gameState = 'aiming'; this.switchPlayer();
+            }
+        }
+        
+        checkCollisions() {
+            for (let i = 0; i < this.balls.length; i++) {
+                const b1 = this.balls[i]; if(b1.inPocket) continue;
+                if (b1.position.x < b1.radius || b1.position.x > this.canvas.width - b1.radius) b1.velocity.x *= -0.9;
+                if (b1.position.y < b1.radius || b1.position.y > this.canvas.height - b1.radius) b1.velocity.y *= -0.9;
+                
+                for (let j = i + 1; j < this.balls.length; j++) {
+                    const b2 = this.balls[j]; if(b2.inPocket) continue;
+                    const dist = b1.position.distance(b2.position);
+                    if (dist < b1.radius + b2.radius) this.resolveCollision(b1, b2);
+                }
+            }
+        }
+
+        resolveCollision(b1, b2) {
+            const normal = b2.position.subtract(b1.position).normalize();
+            const relVel = b2.velocity.subtract(b1.velocity);
+            const velAlongNormal = relVel.dot(normal);
+            if (velAlongNormal > 0) return;
+            const impulse = -1.9 * velAlongNormal / (b1.mass + b2.mass);
+            b1.velocity = b1.velocity.subtract(normal.multiply(impulse * b1.mass));
+            b2.velocity = b2.velocity.add(normal.multiply(impulse * b2.mass));
+        }
+
+        checkPockets() {
+            this.balls.forEach(b => {
+                if(b.inPocket) return;
+                this.pockets.forEach(p => {
+                    if (b.position.distance(p) < 22) {
+                        b.inPocket = true;
+                        if(b.type !== 'cue') this.playerScores[this.currentPlayer-1] += b.value;
+                        else {
+                            this.playerScores[this.currentPlayer-1] = Math.max(0, this.playerScores[this.currentPlayer-1] - 4);
+                            setTimeout(() => { b.inPocket = false; b.position = new Vector(this.canvas.width/4, this.canvas.height/2); b.velocity = new Vector(); }, 1000);
+                        }
+                    }
+                });
+            });
+        }
+        
+        allBallsStopped() {
+            return this.balls.every(b => b.inPocket || b.velocity.magnitude() < 0.05);
+        }
+
+        switchPlayer() {
+            this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
+            this.updateUI();
+        }
+        
+        shoot(power, spin) {
+            if (this.gameState !== 'aiming' || !this.aimLocked) return;
+            const direction = this.aimLine.end.subtract(this.aimLine.start).normalize();
+            const speed = power / 6;
+            this.cueBall.velocity = direction.multiply(speed);
+            this.cueBall.velocity.x += spin.y * 2; // Apply side spin
+            this.cueBall.velocity.y -= spin.x * 2;
+            this.gameState = 'moving';
+        }
+
+        updateAimLockUI() {
+            const container = document.querySelector('.game-container');
+            this.aimLocked ? container.classList.add('aim-locked') : container.classList.remove('aim-locked');
+        }
+
+        draw() {
+            this.ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--table-felt').trim();
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.pockets.forEach(p => { this.ctx.beginPath(); this.ctx.arc(p.x, p.y, 22, 0, Math.PI*2); this.ctx.fillStyle='black'; this.ctx.fill(); });
+            this.balls.forEach(b => b.draw(this.ctx));
+            if (this.gameState === 'aiming' && this.aimLine.start && this.aimLine.end) this.drawAimLine();
+        }
+
+        drawAimLine() {
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.aimLine.start.x, this.aimLine.start.y);
+            this.ctx.lineTo(this.aimLine.end.x, this.aimLine.end.y);
+            this.ctx.strokeStyle = this.aimLocked ? 'rgba(46, 204, 113, 0.9)' : 'rgba(255, 255, 255, 0.7)';
+            this.ctx.setLineDash(this.aimLocked ? [] : [5, 5]);
+            this.ctx.lineWidth = 2; this.ctx.stroke(); this.ctx.setLineDash([]);
+        }
+
+        updateUI() {
+            document.getElementById('score1').textContent = this.playerScores[0];
+            document.getElementById('score2').textContent = this.playerScores[1];
+            document.getElementById('player1-info').classList.toggle('active', this.currentPlayer === 1);
+            document.getElementById('player2-info').classList.toggle('active', this.currentPlayer === 2);
+            document.getElementById('turn-info').textContent = `ผู้เล่น ${this.currentPlayer}`;
+        }
+    }
+
+    // --- Game Initialization ---
+    let game;
+
+    function setupCanvas() {
+        const canvas = document.getElementById('snooker-canvas');
+        const aspectRatio = 2;
+        const container = document.querySelector('.canvas-container');
+        const width = container.offsetWidth;
+        canvas.width = width;
+        canvas.height = width / aspectRatio;
+        if (!game) game = new Game(canvas);
+        else { game.canvas = canvas; game.ctx = canvas.getContext('2d'); game.createPockets(); }
+    }
+    
+    // --- UI Controls ---
+    const spinCanvas = document.getElementById('spin-control');
+    const spinCtx = spinCanvas.getContext('2d');
+    function drawSpinControl() {
+        spinCtx.clearRect(0, 0, 80, 80);
+        spinCtx.beginPath(); spinCtx.arc(40, 40, 38, 0, Math.PI * 2); spinCtx.fillStyle = '#f0f0f0'; spinCtx.fill();
+        spinCtx.beginPath(); spinCtx.arc(40 + game.spin.x * 30, 40 + game.spin.y * 30, 5, 0, Math.PI * 2); spinCtx.fillStyle = 'red'; spinCtx.fill();
+    }
+    spinCanvas.addEventListener('click', (e) => {
+        const rect = spinCanvas.getBoundingClientRect();
+        let x = (e.clientX - rect.left - 40) / 30;
+        let y = (e.clientY - rect.top - 40) / 30;
+        const mag = Math.sqrt(x*x + y*y);
+        if(mag > 1) { x /= mag; y /= mag; }
+        game.spin = { x, y }; drawSpinControl();
+    });
+    
+    document.getElementById('power-slider').addEventListener('input', (e) => {
+        game.power = parseInt(e.target.value);
+        document.getElementById('power-value').textContent = e.target.value;
+    });
+
+    document.getElementById('shoot-btn').addEventListener('click', () => game.shoot(game.power, game.spin));
+    document.getElementById('reset-btn').addEventListener('click', () => game.resetBalls());
+    
+    // Mouse aiming and locking
+    const mainCanvas = document.getElementById('snooker-canvas');
+    mainCanvas.addEventListener('mousemove', (e) => {
+        if (game.gameState !== 'aiming' || game.aimLocked) return;
+        const rect = mainCanvas.getBoundingClientRect();
+        const mousePos = new Vector(e.clientX - rect.left, e.clientY - rect.top);
+        game.aimLine.start = game.cueBall.position;
+        game.aimLine.end = mousePos;
+    });
+
+    mainCanvas.addEventListener('click', () => {
+        if(game.gameState === 'aiming') {
+            game.aimLocked = !game.aimLocked;
+            game.updateAimLockUI();
+        }
+    });
+
+    // --- Main Loop ---
+    function gameLoop() {
+        game.update();
+        game.draw();
+        requestAnimationFrame(gameLoop);
+    }
+    
+    window.addEventListener('resize', setupCanvas);
+    setupCanvas();
+    drawSpinControl();
+    game.init();
+    gameLoop();
+    </script>
+</body>
+</html>

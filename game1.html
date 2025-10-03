@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมทายตัวเลข | Galaxy Games</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #0f0f1a;
+            --primary-color: #1a1a2e;
+            --secondary-color: #2a2a4a;
+            --accent-color: #00f5d4;
+            --glow-color: rgba(0, 245, 212, 0.5);
+            --font-color: #e0e0e0;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .game-container {
+            background-color: var(--primary-color);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--secondary-color);
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5rem;
+            color: var(--font-color-muted);
+            transition: color 0.3s ease;
+        }
+        .back-link:hover {
+            color: var(--accent-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            font-size: 1.1rem;
+            color: var(--font-color-muted);
+            margin-bottom: 30px;
+        }
+
+        .input-area input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            border-radius: 10px;
+            border: 2px solid var(--secondary-color);
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Kanit', sans-serif;
+            transition: all 0.3s ease;
+            -moz-appearance: textfield; /* Hide number spinners on Firefox */
+        }
+        .input-area input::-webkit-outer-spin-button,
+        .input-area input::-webkit-inner-spin-button {
+            -webkit-appearance: none; /* Hide number spinners on Chrome */
+            margin: 0;
+        }
+        .input-area input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: var(--accent-color);
+            color: black;
+        }
+        .btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px var(--glow-color);
+        }
+        
+        .result-area {
+            margin-top: 30px;
+            min-height: 60px; /* Reserve space to prevent layout shift */
+        }
+
+        #message {
+            font-size: 1.4rem;
+            font-weight: 500;
+            transition: color 0.5s ease;
+        }
+        
+        /* Message styling for different states */
+        .message-win { color: var(--success-color); }
+        .message-hint { color: var(--warning-color); }
+
+        #guess-count {
+            margin-top: 10px;
+            color: var(--font-color-muted);
+        }
+
+        /* Hide element utility class */
+        .hidden {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <a href="index.html" class="back-link" title="กลับหน้าหลัก"><i class="fa-solid fa-arrow-left"></i></a>
+
+        <h1>🔢 เกมทายตัวเลข</h1>
+        <p class="instructions">ทายตัวเลขระหว่าง 1 ถึง 100</p>
+        
+        <div class="input-area">
+            <input type="number" id="guess-input" placeholder="ใส่ตัวเลขที่นี่" min="1" max="100">
+            <button class="btn" id="guess-button">ทายผล</button>
+        </div>
+
+        <div class="result-area">
+            <p id="message"></p>
+            <p id="guess-count"></p>
+        </div>
+
+        <button class="btn hidden" id="play-again-button">เล่นอีกครั้ง</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Get DOM Elements ---
+            const guessInput = document.getElementById('guess-input');
+            const guessButton = document.getElementById('guess-button');
+            const playAgainButton = document.getElementById('play-again-button');
+            const messageEl = document.getElementById('message');
+            const guessCountEl = document.getElementById('guess-count');
+            const inputArea = document.querySelector('.input-area');
+
+            // --- Game State Variables ---
+            let secretNumber;
+            let guessCount;
+            
+            // --- Initialize a new game ---
+            function initGame() {
+                // Generate a random number between 1 and 100
+                secretNumber = Math.floor(Math.random() * 100) + 1;
+                guessCount = 0;
+                
+                // Reset UI
+                messageEl.textContent = 'เริ่มทายได้เลย!';
+                messageEl.className = '';
+                guessCountEl.textContent = '';
+                guessInput.value = '';
+                guessInput.disabled = false;
+                
+                // Show game controls, hide "play again"
+                inputArea.classList.remove('hidden');
+                playAgainButton.classList.add('hidden');
+                guessInput.focus();
+            }
+
+            // --- Handle a player's guess ---
+            function handleGuess() {
+                const userGuess = parseInt(guessInput.value);
+
+                // Validate input
+                if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+                    messageEl.textContent = 'กรุณาใส่ตัวเลข 1-100 เท่านั้น!';
+                    messageEl.className = 'message-hint';
+                    return;
+                }
+
+                guessCount++;
+                guessCountEl.textContent = `จำนวนครั้งที่ทาย: ${guessCount}`;
+
+                // Compare guess with secret number
+                if (userGuess === secretNumber) {
+                    winGame();
+                } else if (userGuess < secretNumber) {
+                    messageEl.textContent = 'น้อยไป! ลองอีกครั้ง';
+                    messageEl.className = 'message-hint';
+                } else {
+                    messageEl.textContent = 'มากไป! ลองอีกครั้ง';
+                    messageEl.className = 'message-hint';
+                }
+
+                guessInput.value = '';
+                guessInput.focus();
+            }
+            
+            // --- Handle win condition ---
+            function winGame() {
+                messageEl.textContent = `🎉 ถูกต้อง! เลขคือ ${secretNumber} คุณทายไป ${guessCount} ครั้ง`;
+                messageEl.className = 'message-win';
+                guessInput.disabled = true;
+
+                // Hide game controls, show "play again"
+                inputArea.classList.add('hidden');
+                playAgainButton.classList.remove('hidden');
+            }
+
+            // --- Event Listeners ---
+            guessButton.addEventListener('click', handleGuess);
+            playAgainButton.addEventListener('click', initGame);
+            
+            // Allow pressing Enter key to guess
+            guessInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    handleGuess();
+                }
+            });
+
+            // --- Start the first game ---
+            initGame();
+        });
+    </script>
+
+</body>
+</html>

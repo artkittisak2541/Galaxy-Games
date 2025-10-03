@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Speed Test | Galaxy Games</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #0f0f1a;
+            --primary-color: #1a1a2e;
+            --secondary-color: #2a2a4a;
+            --accent-color: #00f5d4;
+            --glow-color: rgba(0, 245, 212, 0.5);
+            --font-color: #e0e0e0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 600px;
+            background-color: var(--primary-color);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            position: relative;
+            text-align: center;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: var(--bg-color);
+            border-radius: 10px;
+        }
+        .stats-bar span { color: var(--accent-color); font-weight: bold; }
+
+        #click-area {
+            width: 100%;
+            height: 300px;
+            background: radial-gradient(circle, var(--secondary-color) 0%, var(--primary-color) 70%);
+            border: 3px solid var(--secondary-color);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: var(--font-color-muted);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.1s ease;
+        }
+
+        #click-area:active {
+            transform: scale(0.98);
+        }
+        
+        /* --- Overlay --- */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(15, 15, 26, 0.95);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            border-radius: 20px;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .overlay.hidden { opacity: 0; visibility: hidden; }
+        .overlay h1 { font-size: 3rem; margin-bottom: 10px; color: var(--accent-color); }
+        .overlay p { font-size: 1.2rem; max-width: 80%; margin-bottom: 30px; }
+        .result-stats { display: flex; gap: 40px; font-size: 1.5rem; }
+        
+        .btn {
+            padding: 12px 30px; font-size: 1.1rem; font-weight: 700;
+            border-radius: 25px; border: none; cursor: pointer;
+            transition: all 0.3s ease; background-color: var(--accent-color);
+            color: black;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .back-link { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); }
+        a { color: var(--font-color-muted); text-decoration: none; }
+        a:hover { color: var(--accent-color); }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="stats-bar">
+            <div>เวลา: <span id="time">10</span>s</div>
+            <div>จำนวนคลิก: <span id="clicks">0</span></div>
+        </div>
+        
+        <div id="click-area">
+            คลิกที่นี่เพื่อเริ่ม
+        </div>
+        
+        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก</a>
+
+        <div class="overlay hidden" id="result-screen">
+            <h1>หมดเวลา!</h1>
+            <div class="result-stats">
+                <div><p>คะแนน: <span id="final-clicks">0</span></p></div>
+                <div><p>CPS: <span id="cps">0.0</span></p></div>
+            </div>
+            <button class="btn" id="play-again-button">เล่นอีกครั้ง</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeEl = document.getElementById('time');
+            const clicksEl = document.getElementById('clicks');
+            const clickArea = document.getElementById('click-area');
+            const resultScreen = document.getElementById('result-screen');
+            const finalClicksEl = document.getElementById('final-clicks');
+            const cpsEl = document.getElementById('cps');
+            const playAgainButton = document.getElementById('play-again-button');
+
+            const GAME_DURATION = 10; // 10 seconds
+            let clicks = 0;
+            let timeLeft = GAME_DURATION;
+            let timer;
+            let gameStarted = false;
+
+            function startGame() {
+                if (gameStarted) return;
+                
+                gameStarted = true;
+                clicks = 0;
+                timeLeft = GAME_DURATION;
+
+                clicksEl.textContent = clicks;
+                timeEl.textContent = timeLeft;
+                resultScreen.classList.add('hidden');
+                clickArea.textContent = 'คลิกให้เร็วที่สุด!';
+                
+                timer = setInterval(() => {
+                    timeLeft--;
+                    timeEl.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+
+            function endGame() {
+                clearInterval(timer);
+                gameStarted = false;
+
+                const cps = (clicks / GAME_DURATION).toFixed(2);
+                finalClicksEl.textContent = clicks;
+                cpsEl.textContent = cps;
+                
+                resultScreen.classList.remove('hidden');
+                clickArea.textContent = 'คลิกที่นี่เพื่อเริ่ม';
+            }
+
+            clickArea.addEventListener('click', (e) => {
+                if (!gameStarted) {
+                    startGame();
+                }
+
+                if (timeLeft > 0) {
+                    clicks++;
+                    clicksEl.textContent = clicks;
+                    
+                    // Fun click effect
+                    createParticle(e.clientX, e.clientY);
+                }
+            });
+
+            playAgainButton.addEventListener('click', startGame);
+
+            // --- Particle Effect for fun ---
+            function createParticle(x, y) {
+                const particle = document.createElement('div');
+                document.body.appendChild(particle);
+
+                const size = Math.floor(Math.random() * 20 + 5);
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.background = `hsl(${Math.random() * 60 + 150}, 100%, 50%)`; // Shades of cyan/green
+                particle.style.borderRadius = '50%';
+                particle.style.position = 'absolute';
+                particle.style.left = `${x - size / 2}px`;
+                particle.style.top = `${y - size / 2}px`;
+                particle.style.pointerEvents = 'none';
+
+                const angle = Math.random() * Math.PI * 2;
+                const force = Math.random() * 100 + 50;
+                const dx = Math.cos(angle) * force;
+                const dy = Math.sin(angle) * force;
+
+                particle.animate([
+                    { transform: `translate(0, 0) scale(1)`, opacity: 1 },
+                    { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 1000,
+                    easing: 'cubic-bezier(0, .9, .57, 1)'
+                }).onfinish = () => {
+                    particle.remove();
+                };
+            }
+        });
+    </script>
+</body>
+</html>

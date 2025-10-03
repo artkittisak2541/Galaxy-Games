@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawing Board | Galaxy Games</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #0f0f1a;
+            --primary-color: #1a1a2e;
+            --secondary-color: #2a2a4a;
+            --accent-color: #00f5d4;
+            --font-color: #e0e0e0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background-color: var(--primary-color);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            color: white;
+        }
+
+        .toolbar {
+            width: 100%;
+            background-color: var(--bg-color);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid var(--secondary-color);
+        }
+        
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tool-group label {
+            font-weight: 500;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 8px;
+        }
+
+        .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        .color-swatch.active {
+            border-color: var(--accent-color);
+            transform: scale(1.1);
+        }
+        
+        #brush-size {
+            cursor: pointer;
+        }
+        #brush-preview {
+            width: 30px;
+            height: 30px;
+            background-color: var(--font-color);
+            border-radius: 50%;
+        }
+
+        .tool-btn {
+            background: none;
+            border: 2px solid var(--secondary-color);
+            color: var(--font-color);
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+        }
+        .tool-btn:hover {
+            background-color: var(--secondary-color);
+            color: var(--accent-color);
+        }
+        .tool-btn.active {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            border-color: var(--accent-color);
+        }
+        
+        #drawing-canvas {
+            background-color: #ffffff;
+            border-radius: 10px;
+            cursor: crosshair;
+        }
+        .back-link { color: var(--font-color-muted); text-decoration: none; }
+        .back-link:hover { color: var(--accent-color); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>🎨 กระดานวาดรูปอวกาศ</h1>
+        <div class="toolbar">
+            <div class="tool-group">
+                <label><i class="fa-solid fa-palette"></i> สี:</label>
+                <div class="color-palette">
+                    <div class="color-swatch active" style="background-color: #000000;" data-color="#000000"></div>
+                    <div class="color-swatch" style="background-color: #ff0054;" data-color="#ff0054"></div>
+                    <div class="color-swatch" style="background-color: #ff7f11;" data-color="#ff7f11"></div>
+                    <div class="color-swatch" style="background-color: #ffc40c;" data-color="#ffc40c"></div>
+                    <div class="color-swatch" style="background-color: #8ac926;" data-color="#8ac926"></div>
+                    <div class="color-swatch" style="background-color: #00f5d4;" data-color="#00f5d4"></div>
+                    <div class="color-swatch" style="background-color: #0077be;" data-color="#0077be"></div>
+                    <div class="color-swatch" style="background-color: #8338ec;" data-color="#8338ec"></div>
+                </div>
+            </div>
+            <div class="tool-group">
+                <label><i class="fa-solid fa-paintbrush"></i> ขนาด:</label>
+                <input type="range" id="brush-size" min="1" max="50" value="5">
+                <div id="brush-preview"></div>
+            </div>
+             <div class="tool-group" style="margin-left: auto;">
+                <button class="tool-btn" id="eraser-btn" title="ยางลบ"><i class="fa-solid fa-eraser"></i></button>
+                <button class="tool-btn" id="clear-btn" title="ล้างทั้งหมด"><i class="fa-solid fa-trash"></i></button>
+                <button class="tool-btn" id="save-btn" title="บันทึกเป็น PNG"><i class="fa-solid fa-save"></i></button>
+            </div>
+        </div>
+        <canvas id="drawing-canvas" width="800" height="500"></canvas>
+        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('drawing-canvas');
+            const ctx = canvas.getContext('2d');
+            const toolbar = document.querySelector('.toolbar');
+            
+            // --- State Variables ---
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            let currentColor = '#000000';
+            let currentBrushSize = 5;
+            let isErasing = false;
+
+            // --- Tool Elements ---
+            const colorSwatches = document.querySelectorAll('.color-swatch');
+            const brushSizeSlider = document.getElementById('brush-size');
+            const brushPreview = document.getElementById('brush-preview');
+            const eraserBtn = document.getElementById('eraser-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const saveBtn = document.getElementById('save-btn');
+
+            // --- Canvas Setup ---
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // --- Drawing Functions ---
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = getMousePos(e);
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                const [currentX, currentY] = getMousePos(e);
+
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(currentX, currentY);
+
+                if (isErasing) {
+                    ctx.strokeStyle = '#ffffff'; // Eraser color
+                    ctx.lineWidth = currentBrushSize;
+                } else {
+                    ctx.strokeStyle = currentColor;
+                    ctx.lineWidth = currentBrushSize;
+                }
+                ctx.stroke();
+
+                [lastX, lastY] = [currentX, currentY];
+            }
+
+            function stopDrawing() {
+                isDrawing = false;
+            }
+
+            function getMousePos(e) {
+                const rect = canvas.getBoundingClientRect();
+                // Handle both mouse and touch events
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                return [clientX - rect.left, clientY - rect.top];
+            }
+            
+            // --- Tool Event Listeners ---
+            
+            // Color Selection
+            colorSwatches.forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    currentColor = swatch.dataset.color;
+                    isErasing = false;
+                    
+                    // Update active state
+                    document.querySelector('.color-swatch.active').classList.remove('active');
+                    swatch.classList.add('active');
+                    eraserBtn.classList.remove('active');
+                    updateBrushPreview();
+                });
+            });
+
+            // Brush Size
+            brushSizeSlider.addEventListener('input', (e) => {
+                currentBrushSize = e.target.value;
+                updateBrushPreview();
+            });
+            
+            function updateBrushPreview() {
+                const size = Math.max(2, currentBrushSize); // Ensure preview is visible
+                brushPreview.style.width = `${size}px`;
+                brushPreview.style.height = `${size}px`;
+                brushPreview.style.backgroundColor = isErasing ? '#ccc' : currentColor;
+            }
+
+            // Eraser
+            eraserBtn.addEventListener('click', () => {
+                isErasing = !isErasing;
+                eraserBtn.classList.toggle('active');
+                if (isErasing) {
+                    document.querySelector('.color-swatch.active').classList.remove('active');
+                } else {
+                    // Default back to the selected color if eraser is turned off
+                    document.querySelector(`[data-color="${currentColor}"]`).classList.add('active');
+                }
+                updateBrushPreview();
+            });
+
+            // Clear Canvas
+            clearBtn.addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            // Save Canvas
+            saveBtn.addEventListener('click', () => {
+                const link = document.createElement('a');
+                link.download = 'galaxy-drawing.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+            
+            // --- Canvas Event Listeners ---
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch support
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+
+            // Initial setup
+            updateBrushPreview();
+        });
+    </script>
+</body>
+</html>

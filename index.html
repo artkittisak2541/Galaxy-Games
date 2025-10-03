@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy Games - ศูนย์รวมเกมสุดมันส์</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #0f0f1a;
+            --primary-color: #1a1a2e;
+            --secondary-color: #2a2a4a;
+            --accent-color: #00f5d4;
+            --glow-color: rgba(0, 245, 212, 0.5);
+            --font-color: #e0e0e0;
+            --font-color-muted: #a0a0b0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--font-color);
+            line-height: 1.6;
+            overflow: hidden;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        a:hover { color: white; }
+        img { max-width: 100%; height: auto; display: block; }
+        
+        .game-card-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            background-color: var(--primary-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--secondary-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--accent-color);
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            grid-template-rows: 70px 1fr;
+            grid-template-areas:
+                "header header"
+                "sidebar main";
+            height: 100vh;
+        }
+
+        .header {
+            grid-area: header;
+            background-color: var(--primary-color);
+            border-bottom: 1px solid var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+        }
+        .logo { font-size: 1.8rem; font-weight: 700; color: white; }
+        .logo i { color: var(--accent-color); margin-right: 10px; transform: rotate(-15deg); }
+        .search-bar { flex-grow: 1; margin: 0 40px; max-width: 600px; }
+        .search-bar input {
+            width: 100%; padding: 10px 20px; border-radius: 20px;
+            border: 1px solid var(--secondary-color); background-color: var(--bg-color);
+            color: white; font-family: 'Kanit', sans-serif; font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .search-bar input:focus {
+            outline: none; border-color: var(--accent-color);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+        .user-profile { display: flex; align-items: center; gap: 15px; }
+        .user-profile i { font-size: 1.2rem; cursor: pointer; }
+        .user-profile img {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2px solid var(--accent-color);
+        }
+
+        .sidebar {
+            grid-area: sidebar; background-color: var(--primary-color);
+            padding: 20px; padding-top: 90px;
+            border-right: 1px solid var(--secondary-color);
+            overflow-y: auto; position: fixed; height: 100%; width: 260px;
+        }
+        .sidebar-title {
+            font-size: 1.2rem; font-weight: 500; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--font-color-muted); margin-bottom: 20px;
+        }
+        .category-menu ul { list-style: none; }
+        .category-menu li a {
+            display: flex; align-items: center; gap: 15px; padding: 15px;
+            border-radius: 10px; color: var(--font-color); font-weight: 500;
+            margin-bottom: 5px; cursor: pointer;
+        }
+        .category-menu li a:hover, .category-menu li a.active {
+            background-color: var(--secondary-color); color: white;
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+        .category-menu li a i { font-size: 1.2rem; width: 20px; text-align: center; }
+
+        .main-content {
+            grid-area: main; padding: 20px; padding-top: 90px;
+            overflow-y: auto;
+        }
+        .featured-banner {
+            position: relative; height: 400px; border-radius: 20px;
+            overflow: hidden; margin-bottom: 40px; display: flex; align-items: flex-end;
+        }
+        .featured-banner::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 70%;
+            background: linear-gradient(to top, rgba(15, 15, 26, 0.9), transparent);
+        }
+        .featured-banner img { width: 100%; height: 100%; object-fit: cover; }
+        .banner-content { position: relative; z-index: 2; padding: 40px; }
+        .banner-content h2 { font-size: 2.8rem; margin-bottom: 10px; color: white; }
+        .banner-content p { font-size: 1.1rem; max-width: 500px; margin-bottom: 20px; }
+        .btn-play {
+            background-color: var(--accent-color); color: black; padding: 12px 30px;
+            border-radius: 25px; font-weight: 700; font-size: 1.1rem; transition: all 0.3s ease;
+        }
+        .btn-play:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--glow-color); }
+
+        .section-title { font-size: 1.8rem; margin-bottom: 20px; }
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+        }
+        .game-card {
+            background-color: var(--primary-color); border-radius: 15px;
+            overflow: hidden; position: relative;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+        .game-card.hide {
+            transform: scale(0.9);
+            opacity: 0;
+            display: none;
+        }
+        
+        .game-card-link:hover .game-card {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .game-card-link:hover .game-thumbnail img { transform: scale(1.1); }
+        .game-card-link:hover .play-overlay { opacity: 1; }
+
+        .game-thumbnail { height: 150px; overflow: hidden; }
+        .game-thumbnail img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .game-info { padding: 15px; }
+        .game-title {
+            font-size: 1.1rem; font-weight: 500; color: white;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .game-category { font-size: 0.9rem; color: var(--font-color-muted); }
+        .play-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 150px;
+            background-color: rgba(26, 26, 46, 0.7); display: flex; justify-content: center;
+            align-items: center; opacity: 0; transition: opacity 0.3s ease; backdrop-filter: blur(5px);
+        }
+        .play-overlay i { font-size: 3rem; color: var(--accent-color); }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <header class="header">
+             <div class="logo"><i class="fa-solid fa-rocket"></i> Galaxy Games</div>
+             <div class="search-bar"><input type="text" placeholder="ค้นหาเกมที่คุณต้องการ..."></div>
+             <div class="user-profile">
+                 <i class="fa-solid fa-bell"></i>
+                 <i class="fa-solid fa-envelope"></i>
+                 <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User Avatar">
+             </div>
+        </header>
+
+        <aside class="sidebar">
+            <h3 class="sidebar-title">เมนูหลัก</h3>
+            <nav class="category-menu">
+                <ul>
+                    <li><a data-filter="all" class="active"><i class="fa-solid fa-house"></i> หน้าแรก</a></li>
+                    <li><a data-filter="เกมใหม่"><i class="fa-solid fa-star"></i> เกมใหม่</a></li>
+                    <li><a data-filter="ยอดนิยม"><i class="fa-solid fa-fire"></i> ยอดนิยม</a></li>
+                    <li><a data-filter="ผู้เล่นหลายคน"><i class="fa-solid fa-users"></i> ผู้เล่นหลายคน</a></li>
+                </ul>
+            </nav>
+            
+            <h3 class="sidebar-title" style="margin-top: 30px;">หมวดหมู่เกม</h3>
+            <nav class="category-menu">
+                <ul>
+                    <li><a data-filter="แอ็กชัน"><i class="fa-solid fa-crosshairs"></i> แอ็กชัน</a></li>
+                    <li><a data-filter="พัซเซิล"><i class="fa-solid fa-puzzle-piece"></i> พัซเซิล</a></li>
+                    <li><a data-filter="แข่งรถ"><i class="fa-solid fa-flag-checkered"></i> แข่งรถ</a></li>
+                    <li><a data-filter="กีฬา"><i class="fa-solid fa-futbol"></i> กีฬา</a></li>
+                    <li><a data-filter="กลยุทธ์"><i class="fa-solid fa-chess-knight"></i> กลยุทธ์</a></li>
+                    <li><a data-filter="ผจญภัย"><i class="fa-solid fa-hat-wizard"></i> ผจญภัย</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <section class="featured-banner">
+                <img src="https://images.pexels.com/photos/9072216/pexels-photo-9072216.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Featured Game">
+                <div class="banner-content">
+                    <h2>Galaxy Games</h2>
+                    <p>ศูนย์รวมเกมสุดมันส์หลากหลายแนว พร้อมให้คุณได้สัมผัส!</p>
+                    <a href="#" class="btn-play"><i class="fa-solid fa-star"></i> ดูเกมยอดนิยม</a>
+                </div>
+            </section>
+            
+            <section class="game-grid-container">
+                <h2 class="section-title">เกมทั้งหมด</h2>
+                <div class="game-grid">
+                    
+                    <a href="game1.html" class="game-card-link">
+                        <div class="game-card" data-category="พัซเซิล"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2022/05/10/01/24/gold-number-7185768_640.png" alt="เกมทายตัวเลข"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🔢 เกมทายตัวเลข</h4><p class="game-category">พัซเซิล</p></div></div>
+                    </a>
+                    <a href="game2.html" class="game-card-link">
+                        <div class="game-card" data-category="แอ็กชัน"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2013/07/13/12/05/rattlesnake-159135_640.png" alt="เกมงู Snake"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🐍 เกมงู Snake</h4><p class="game-category">แอ็กชัน</p></div></div>
+                    </a>
+                    <a href="game3.html" class="game-card-link">
+                        <div class="game-card" data-category="พัซเซิล"><div class="game-thumbnail"><img src="https://images.pexels.com/photos/163036/mario-luigi-yoschi-figures-163036.jpeg?auto=compress&cs=tinysrgb&w=400" alt="เกมจับคู่"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🧠 เกมจับคู่</h4><p class="game-category">พัซเซิล</p></div></div>
+                    </a>
+                    <a href="game4.html" class="game-card-link">
+                        <div class="game-card" data-category="แอ็กชัน"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2023/10/25/21/04/mouse-8341314_640.png" alt="Whack-a-Mole"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🔨 Whack-a-Mole</h4><p class="game-category">แอ็กชัน</p></div></div>
+                    </a>
+                    <a href="game5.html" class="game-card-link">
+                        <div class="game-card" data-category="พัซเซิล"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2014/10/04/16/55/wooden-cubes-473703_640.jpg" alt="Hangman"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🔤 Hangman</h4><p class="game-category">พัซเซิล</p></div></div>
+                    </a>
+                    <a href="game6.html" class="game-card-link">
+                        <div class="game-card" data-category="กีฬา"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2019/06/12/14/45/softball-4269423_640.png" alt="เกมยิงบอล"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">⚽ เกมยิงบอล</h4><p class="game-category">กีฬา</p></div></div>
+                    </a>
+                    <a href="game7.html" class="game-card-link">
+                        <div class="game-card" data-category="พัซเซิล"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2014/03/25/16/56/tetris-297656_640.png" alt="Tetris"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🧱 Tetris</h4><p class="game-category">พัซเซิล</p></div></div>
+                    </a>
+                    <a href="game8.html" class="game-card-link">
+                        <div class="game-card" data-category="แอ็กชัน"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2015/02/05/17/11/pc-mouse-625151_640.jpg" alt="Click Speed"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">⚡ Click Speed</h4><p class="game-category">แอ็กชัน</p></div></div>
+                    </a>
+                    <a href="game9.html" class="game-card-link">
+                        <div class="game-card" data-category="ผจญภัย"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2016/12/14/09/57/dinosaurs-1905919_640.jpg" alt="กระดานวาดรูป"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🎨 กระดานวาดรูป</h4><p class="game-category">ผจญภัย</p></div></div>
+                    </a>
+                    <a href="game10.html" class="game-card-link">
+                        <div class="game-card" data-category="กีฬา"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2019/06/22/11/21/table-tennis-4291378_640.jpg" alt="Pong"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🏓 Pong</h4><p class="game-category">กีฬา</p></div></div>
+                    </a>
+                    <a href="game11.html" class="game-card-link">
+                        <div class="game-card" data-category="กีฬา"><div class="game-thumbnail"><img src="https://cdn.pixabay.com/photo/2019/11/09/14/45/ball-4613725_640.jpg" alt="Galaxy Snooker"></div><div class="play-overlay"><i class="fa-solid fa-play"></i></div><div class="game-info"><h4 class="game-title">🎱 Galaxy Snooker</h4><p class="game-category">กีฬา</p></div></div>
+                    </a>
+
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterLinks = document.querySelectorAll('.category-menu a');
+            const allGameLinks = document.querySelectorAll('.game-card-link');
+
+            filterLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
+
+                    document.querySelector('.category-menu a.active').classList.remove('active');
+                    this.classList.add('active');
+
+                    const filterValue = this.getAttribute('data-filter');
+
+                    allGameLinks.forEach(gameLink => {
+                        const card = gameLink.querySelector('.game-card');
+                        const cardCategory = card.getAttribute('data-category');
+
+                        if (filterValue === 'all' || filterValue === cardCategory) {
+                            card.classList.remove('hide');
+                            gameLink.style.display = '';
+                        } else {
+                            card.classList.add('hide');
+                            setTimeout(() => {
+                                if (card.classList.contains('hide')) {
+                                    gameLink.style.display = 'none';
+                                }
+                            }, 400);
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
